@@ -1,17 +1,18 @@
-# Nix shell for LaTeX
-
 {
   pkgs ? import <nixpkgs> { },
 }:
-
 let
+  adb_auto = pkgs.callPackage ./derivation.nix { };
 in
 pkgs.mkShellNoCC {
   packages = with pkgs; [
+    adb_auto
+
     android-tools
-    python312
-    python312Packages.pure-python-adb
-    python312Packages.pyqt6
     scrcpy
   ];
+
+  shellHook = ''
+    export PYTHONPATH=$PYTHONPATH:src
+  '';
 }

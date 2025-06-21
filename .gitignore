@@ -1,6 +1,15 @@
-# Artifact
+# Runtime artifact
 screen.png
 screendump.xml
+events/
 
 # Python thing
 __pycache__/
+dist/
+
+# Build artifact
+nghiango_adb_auto.egg-info/
+
+# Nix thing
+result
+result/
