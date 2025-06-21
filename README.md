@@ -20,16 +20,41 @@ Intended feature: Automation with some expected event handling
 
 Setup enviroment: I use nix, so other either put `default.nix`, `derivation.nix` and `pyproject.toml` content into some LLM chat box to find the exact pip-package-build/system tools required to run the application. Or you will want to install `nix-shell`, still need to provide nix-pkg rev tho (as I use NixOS so there no need for me to do that). Other than that, here is how
 
-- Development environment
+## Development environment
 
-  ```sh
-  nix-shell
-  python -m build
-  # python -m twine upload -r pypi dist/*
-  ```
+Setup system tools and python dependancy: No need for `pip install` or `apt install`, just `nix-shell`
 
-- Build "environment": It just build, there no need to have any setup
+```sh
+nix-shell
+```
 
-  ```sh
-  nix-build
-  ```
+Then we can run the module directly for every local change
+
+```sh
+python -m src.adb_auto
+```
+
+You can build python pacakge normally using this evironment also, which is nesseary to publish this pacakge
+
+```sh
+python -m build
+# python -m twine upload -r pypi dist/*
+```
+
+## Build/Prod "environment"
+
+> This build is for nix-os, that how I can use the tools
+
+It just `nix-build`, there no need to have any setup
+
+```sh
+nix-build
+```
+
+Running the tools
+
+```sh
+./result/bin/adb_auto
+```
+
+> I also added the built nix-pacakge into `shell.nix`, so we also expect `adb_auto` is available for running when setup dev environment. It not update to development change though
