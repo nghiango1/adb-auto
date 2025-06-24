@@ -1,0 +1,12 @@
+Get screen shot
+---
+tags:
+  - screen
+responses:
+  200:
+    description: Set-ed value
+    schema:
+      type: object
+      properties:
+        image_data:
+          type: string

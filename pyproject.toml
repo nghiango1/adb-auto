@@ -3,7 +3,7 @@ name = "nghiango-adb-auto"
 version = "0.0.1"
 dependencies = [
     "pure-python-adb",
-    "PyQt6",
+    "flasgger",
     "flask",
 ]
 

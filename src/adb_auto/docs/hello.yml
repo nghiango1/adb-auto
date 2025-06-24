@@ -1,0 +1,16 @@
+Example API endpoint
+---
+parameters:
+  - name: name
+    in: query
+    type: string
+    required: true
+    default: world
+responses:
+  200:
+    description: Hello from adb-auto API
+    schema:
+      type: object
+      properties:
+        result:
+          type: string

@@ -8,6 +8,7 @@ pkgs.mkShellNoCC {
   packages = with pkgs; [
     adb_auto
 
+    tailwindcss_4
     android-tools
     scrcpy
   ];

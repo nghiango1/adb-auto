@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
   <head>
-    <title>Home</title>
+    <title>Adb Auto</title>
     <style>
       html,
       body {
@@ -10,7 +10,7 @@
         height: 100%;
       }
       img.fullscreen {
-        width: 100vw;
+        width: auto;
         height: 100vh;
         object-fit: contain;
         display: block;
@@ -18,7 +18,7 @@
     </style>
     <script>
       function updateImage() {
-        fetch("/current-image")
+        fetch("{{get_current_screen_api_path}}")
           .then((response) => response.json())
           .then((data) => {
             const img = document.getElementById("dynamic-image");
@@ -29,19 +29,19 @@
 
       window.onload = function () {
         updateImage();
-        setInterval(updateImage, 1 * 1000); // 1 s
+        setInterval(updateImage, {{reload_interval}} * 1000); // 1 s
       };
     </script>
   </head>
   <body>
-    <h1>adb-auto</h1>
-    <p>Current screen</p>
-    <img
-      id="dynamic-image"
-      src="{{ image_data }}"
-      class="fullscreen"
-      alt="Base64 Flask Image"
-      width="900"
-    />
+    <div>
+      <img
+        id="dynamic-image"
+        src="{{ image_data }}"
+        class="fullscreen"
+        alt="Base64 Flask Image"
+        width="900"
+      />
+    <div>
   </body>
 </html>
