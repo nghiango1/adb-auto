@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Home</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+      img.fullscreen {
+        width: 100vw;
+        height: 100vh;
+        object-fit: contain;
+        display: block;
+      }
+    </style>
+    <script>
+      function updateImage() {
+        fetch("/current-image")
+          .then((response) => response.json())
+          .then((data) => {
+            const img = document.getElementById("dynamic-image");
+            img.src = data.image_data;
+          })
+          .catch((err) => console.error("Error loading image:", err));
+      }
+
+      window.onload = function () {
+        updateImage();
+        setInterval(updateImage, 1 * 1000); // 1 s
+      };
+    </script>
+  </head>
+  <body>
+    <h1>adb-auto</h1>
+    <p>Current screen</p>
+    <img
+      id="dynamic-image"
+      src="{{ image_data }}"
+      class="fullscreen"
+      alt="Base64 Flask Image"
+      width="900"
+    />
+  </body>
+</html>

@@ -4,6 +4,7 @@ version = "0.0.1"
 dependencies = [
     "pure-python-adb",
     "PyQt6",
+    "flask",
 ]
 
 [build-system]

@@ -32,10 +32,14 @@ class Device:
             quit()
         return devices[0]
 
-    def take_screenshot(self):
+    def take_screenshot(self, to_file=True, path="/tmp/screen.png"):
         image = self.device.screencap()
-        with open("screen.png", "wb") as f:
+        with open(path, "wb") as f:
             f.write(image)
+        if to_file:
+            return (None, path)
+        else:
+            return (image, None)
 
     @staticmethod
     def retSysCall(command):

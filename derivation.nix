@@ -11,6 +11,7 @@ buildPythonApplication {
 
     pure-python-adb
     pyqt6
+    flask
   ];
 
   src = ./.;
