@@ -10,7 +10,7 @@ buildPythonApplication {
     setuptools
 
     pure-python-adb
-    pyqt6
+    flasgger
     flask
   ];
 

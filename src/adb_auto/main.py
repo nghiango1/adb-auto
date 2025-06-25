@@ -105,36 +105,6 @@ def hello():
     return jsonify(result)
 
 
-@swagger.validate("Product")
-def post():
-    """
-    post endpoint
-    ---
-    tags:
-      - products
-    parameters:
-      - name: body
-        in: body
-        required: true
-        schema:
-          id: Product
-          required:
-            - name
-          properties:
-            name:
-              type: string
-              description: The product's name.
-              default: "Guarana"
-    responses:
-      200:
-        description: The product inserted in the database
-        schema:
-          $ref: '#/definitions/Product'
-    """
-    rv = db.insert(request.json)
-    return jsonify(rv)
-
-
 @app.route("/api/v1/screen/togger-reload")
 @swag_from("docs/v1/screen/toggle-reload.yml")
 def togger_reloading():

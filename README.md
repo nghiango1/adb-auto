@@ -28,10 +28,10 @@ Setup system tools and python dependancy: No need for `pip install` or `apt inst
 nix-shell
 ```
 
-Then we can run the module directly for every local change
+Then we can run the module directly for every local change (sort of)
 
 ```sh
-python -m src.adb_auto
+python -m src/adb_auto/main.py
 ```
 
 You can build python pacakge normally using this evironment also, which is nesseary to publish this pacakge

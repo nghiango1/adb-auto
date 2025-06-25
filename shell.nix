@@ -14,6 +14,6 @@ pkgs.mkShellNoCC {
   ];
 
   shellHook = ''
-    export PYTHONPATH=$PYTHONPATH:src
+    export PYTHONPATH=src:$PYTHONPATH
   '';
 }
