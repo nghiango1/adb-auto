@@ -1,0 +1,35 @@
+Set interval for page refresh
+---
+tags:
+  - screen
+consumes:
+  - application/json
+parameters:
+  - in: query
+    name: x1
+    description: The x1 coordinate of the area to get text from
+    type: number
+    required: true
+  - in: query
+    name: y1
+    description: The y1 coordinate of the area to get text from
+    type: number
+    required: true
+  - in: query
+    name: x2
+    description: The x2 coordinate of the area to get text from
+    type: number
+    required: true
+  - in: query
+    name: y2
+    description: The y2 coordinate of the area to get text from
+    type: number
+    required: true
+responses:
+  200:
+    description: Set-ed value
+    schema:
+      type: object
+      properties:
+        reload_interval:
+          type: integer

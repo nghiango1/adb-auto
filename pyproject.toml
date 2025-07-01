@@ -5,6 +5,9 @@ dependencies = [
     "pure-python-adb",
     "flasgger",
     "flask",
+    "pytesseract",
+    "opencv-python",
+    "numpy"
 ]
 
 [build-system]

@@ -12,6 +12,9 @@ buildPythonApplication {
     pure-python-adb
     flasgger
     flask
+    pytesseract
+    numpy
+    opencv-python
   ];
 
   src = ./.;

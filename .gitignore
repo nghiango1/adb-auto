@@ -6,6 +6,7 @@ events/
 # Python thing
 __pycache__/
 dist/
+build/
 
 # Build artifact
 nghiango_adb_auto.egg-info/

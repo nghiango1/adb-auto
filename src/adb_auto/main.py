@@ -10,6 +10,8 @@ from flasgger import Swagger, swag_from
 from flask import Flask, jsonify, render_template, request
 
 from adb_auto.adb.device import Device
+from screen import Screen
+
 
 SCREENSHOT_IMAGES = "/tmp/screen.png"
 VERBOSE = False
@@ -49,7 +51,6 @@ class ADB_AUTO_API_INFO:
 
 
 class FlaskApp:
-    screen_data = None
     reload_screen = False
     reload_interval = 3  # second
 
@@ -86,14 +87,14 @@ def home():
 @app.route(ADB_AUTO_API_INFO.SCREEN.path)
 @swag_from(ADB_AUTO_API_INFO.SCREEN.docs)
 def current_image():
-    if not FlaskApp.screen_data:
+    if not Screen.screen_data:
         debug(
             f"[INFO] Reload image: `{SCREENSHOT_IMAGES}`, check_valid: {os.path.isfile(SCREENSHOT_IMAGES)}"
         )
         image_data = FlaskApp.encode_image_base64(SCREENSHOT_IMAGES)
     else:
         debug("[INFO] Reload in-memory image")
-        image_data = FlaskApp.encode_mem_image_base64(FlaskApp.screen_data)
+        image_data = FlaskApp.encode_mem_image_base64(Screen.screen_data)
     return json.dumps({"image_data": image_data})
 
 
@@ -126,9 +127,43 @@ def set_interval():
     return json.dumps({"reload_interval": FlaskApp.reload_interval})
 
 
-def reload_screen_shot_image(device):
+@app.get("/api/v1/screen/get-text")
+@swag_from("docs/v1/screen/get-text.yml")
+def get_text():
+    x = request.args.get("x", type=float, default=0)
+    y = request.args.get("y", type=float, default=0)
+    width = request.args.get("width", type=float, default=Screen.screen_image.width)
+    height = request.args.get("height", type=float, default=Screen.screen_image.height)
+    area = Screen.Area((x, x + width), (y, y + height))
+    return jsonify(Screen.get_text(area))
+
+
+@app.get("/api/v1/screen/get-text-percented")
+@swag_from("docs/v1/screen/get-text-percented.yml")
+def get_text_percented():
+    x1 = request.args.get("x1", type=float, default=0)
+    y1 = request.args.get("y1", type=float, default=0)
+    x2 = request.args.get("x2", type=float, default=1)
+    y2 = request.args.get("y2", type=float, default=1)
+    area = Screen.AreaFactory.area_from_percented((x1, x2), (y1, y2))
+    return jsonify(Screen.get_text(area))
+
+
+@app.get("/api/v1/screen/get-text-area")
+@swag_from("docs/v1/screen/get-text-area.yml")
+def get_text_area():
+    x1 = request.args.get("x1", type=float, default=0)
+    y1 = request.args.get("y1", type=float, default=0)
+    x2 = request.args.get("x2", type=float, default=Screen.screen_image.width)
+    y2 = request.args.get("y2", type=float, default=Screen.screen_image.height)
+    area = Screen.Area((x1, x2), (y1, y2))
+    return jsonify(Screen.get_text(area))
+
+
+def reload_screen_shot_image(device: Device):
     while not FlaskApp.reload_screen:
-        FlaskApp.screen_data, _path = device.take_screenshot(to_file=False)
+        Screen.screen_data, _ = device.take_screenshot(to_file=False)
+        Screen.update()
         time.sleep(FlaskApp.reload_interval)
 
 
