@@ -8,6 +8,9 @@ from pytesseract import Output, image_to_data
 
 
 class Screen:
+    reload = True
+    reload_interval = 3
+
     screen_data = None
     screen_image: Image.Image
 
