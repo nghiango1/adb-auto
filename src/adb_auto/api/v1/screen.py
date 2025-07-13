@@ -69,15 +69,38 @@ def get_text_area():
     return jsonify(Screen.get_text(area))
 
 
-@screen_api.get("/api/v1/screen")
-@swag_from("screen.yml")
-def current_image():
+def _get_current_screen():
     if not Screen.screen_data:
         debug(
             f"[INFO] Reload image: `{SCREENSHOT_IMAGES}`, check_valid: {os.path.isfile(SCREENSHOT_IMAGES)}"
         )
-        image_data = embedded_image_base64(SCREENSHOT_IMAGES)
+        return embedded_image_base64(SCREENSHOT_IMAGES)
     else:
         debug("[INFO] Reload in-memory image")
-        image_data = embedded_mem_image_base64(Screen.screen_data)
-    return json.dumps({"image_data": image_data})
+        return embedded_mem_image_base64(Screen.screen_data)
+
+
+@screen_api.get("/api/v1/screen")
+@swag_from("screen.yml")
+def current_image():
+    return json.dumps({"image_data": _get_current_screen()})
+
+
+@screen_api.get("/api/v1/screen")
+@swag_from("screen.yml")
+def tap():
+    x = request.args.get("x", type=float, default=Screen.screen_image.width)
+    y = request.args.get("y", type=float, default=Screen.screen_image.height)
+    Screen.tap((x, y))
+    return json.dumps({"image_data": _get_current_screen()})
+
+
+@screen_api.get("/api/v1/screen")
+@swag_from("screen.yml")
+def swipe():
+    x1 = request.args.get("x1", type=float, default=0)
+    y1 = request.args.get("y1", type=float, default=0)
+    x2 = request.args.get("x2", type=float, default=Screen.screen_image.width)
+    y2 = request.args.get("y2", type=float, default=Screen.screen_image.height)
+    Screen.swipe((x1, y1), (x2, y2))
+    return json.dumps({"image_data": _get_current_screen()})

@@ -1,0 +1,24 @@
+---
+tags:
+  - screen
+consumes:
+  - application/json
+parameters:
+  - in: query
+    name: x
+    description: The x coordinate of the area to get text from
+    type: number
+    required: true
+  - in: query
+    name: y
+    description: The y coordinate of the area to get text from
+    type: number
+    required: true
+responses:
+  200:
+    description: Current device's screen screenshot value
+    schema:
+      type: object
+      properties:
+        image_data:
+          type: string

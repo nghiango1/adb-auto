@@ -6,6 +6,7 @@ from typing import Tuple
 from PIL import Image
 from pytesseract import Output, image_to_data
 
+from adb_auto.adb.device import Device
 from adb_auto.config.setting import RELOAD_INTERVAL
 
 
@@ -15,6 +16,8 @@ class Screen:
 
     screen_data = None
     screen_image: Image.Image
+
+    device = Device()
 
     @dataclass
     class Area:
@@ -73,3 +76,29 @@ class Screen:
         }
 
         return result
+
+    @staticmethod
+    def tap(position: Tuple[float, float]):
+        if not Screen.screen_image:
+            return
+        x, y = position
+        Screen.device.inputTap(x, y)
+
+    @staticmethod
+    def swipe(
+        position1: Tuple[float, float],
+        position2: Tuple[float, float],
+        time: int = 200,
+    ):
+        if not Screen.screen_image:
+            return
+        x1, y1 = position1
+        x2, y2 = position2
+        Screen.device.inputSwipe(
+            x1,
+            y1,
+            x2,
+            y2,
+            time=time,
+            percent=False,
+        )

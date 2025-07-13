@@ -46,8 +46,6 @@ def exit_background_jobs():
 
 
 def main():
-    # for i in [1, 10, 100, 200, 300, 400, 500]:
-    #     device.inputTap(i, i)
     start_background_jobs()
     app.run(debug=DEBUG)
     exit_background_jobs()

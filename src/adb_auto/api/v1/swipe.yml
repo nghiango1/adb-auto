@@ -1,0 +1,34 @@
+---
+tags:
+  - screen
+consumes:
+  - application/json
+parameters:
+  - in: query
+    name: x1
+    description: The x coordinate of begin position
+    type: number
+    required: true
+  - in: query
+    name: y1
+    description: The y coordinate of begin position
+    type: number
+    required: true
+  - in: query
+    name: x2
+    description: The x coordinate of end position
+    type: number
+    required: true
+  - in: query
+    name: y2
+    description: The y coordinate of end position
+    type: number
+    required: true
+responses:
+  200:
+    description: Current device's screen screenshot value
+    schema:
+      type: object
+      properties:
+        image_data:
+          type: string

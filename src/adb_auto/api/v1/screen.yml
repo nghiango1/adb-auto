@@ -4,7 +4,7 @@ tags:
   - screen
 responses:
   200:
-    description: Set-ed value
+    description: Current device's screen screenshot value
     schema:
       type: object
       properties:
