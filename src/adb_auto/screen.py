@@ -2,7 +2,6 @@ from dataclasses import dataclass
 import io
 import base64
 from typing import Tuple
-
 from PIL import Image
 from pytesseract import Output, image_to_data
 

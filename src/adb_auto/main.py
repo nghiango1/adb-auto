@@ -1,20 +1,16 @@
-import base64
 from dataclasses import dataclass
-import json
 import os
 import threading
 import time
 
 from flasgger import Swagger, swag_from
 from flask import Flask, jsonify, render_template, request
-from utils.logger import DEBUG, debug
+from config.setting import DEBUG, SCREENSHOT_IMAGES
+from utils.embedded_image import embedded_image_base64
 
 from adb_auto.adb.device import Device
 from adb_auto.screen import Screen
 from adb_auto.api.v1.screen import screen_api
-
-
-SCREENSHOT_IMAGES = "/tmp/screen.png"
 
 
 template = {
@@ -43,49 +39,18 @@ class ADB_AUTO_API_INFO:
     SCREEN = ApiInfo("/api/v1/screen", "docs/v1/screen.yml")
 
 
-class FlaskApp:
-    @staticmethod
-    def encode_image_base64(image_path):
-        if not os.path.exists(image_path):
-            return "Image not found"
-
-        with open(image_path, "rb") as image_file:
-            encoded = base64.b64encode(image_file.read()).decode("utf-8")
-            ext = image_path.split(".")[-1]
-            return f"data:image/{ext};base64,{encoded}"
-
-    @staticmethod
-    def encode_mem_image_base64(data):
-        encoded = base64.b64encode(data).decode("utf-8")
-        return f"data:image/png;base64,{encoded}"
-
-
 @app.route("/")
 def home():
     print(
         f"[INFO] First load image: `{SCREENSHOT_IMAGES}`, check_valid: {os.path.isfile(SCREENSHOT_IMAGES)}"
     )
-    image_data = FlaskApp.encode_image_base64(SCREENSHOT_IMAGES)
+    image_data = embedded_image_base64(SCREENSHOT_IMAGES)
     return render_template(
         "index.html",
         image_data=image_data,
         reload_interval=Screen.reload_interval,
         get_current_screen_api_path=ADB_AUTO_API_INFO.SCREEN.path,
     )
-
-
-@app.route(ADB_AUTO_API_INFO.SCREEN.path)
-@swag_from(ADB_AUTO_API_INFO.SCREEN.docs)
-def current_image():
-    if not Screen.screen_data:
-        debug(
-            f"[INFO] Reload image: `{SCREENSHOT_IMAGES}`, check_valid: {os.path.isfile(SCREENSHOT_IMAGES)}"
-        )
-        image_data = FlaskApp.encode_image_base64(SCREENSHOT_IMAGES)
-    else:
-        debug("[INFO] Reload in-memory image")
-        image_data = FlaskApp.encode_mem_image_base64(Screen.screen_data)
-    return json.dumps({"image_data": image_data})
 
 
 @app.route("/api/hello")

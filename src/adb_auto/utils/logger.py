@@ -1,7 +1,5 @@
 import traceback
-
-VERBOSE = True
-DEBUG = True
+from config.setting import VERBOSE
 
 
 def debug(*arg, error=False):

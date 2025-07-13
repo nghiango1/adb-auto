@@ -1,10 +1,13 @@
 import json
+import os
 
 from flasgger import swag_from
 from flask import Blueprint, jsonify, request
 
 from adb_auto.screen import Screen
 from adb_auto.utils.logger import debug
+from config.setting import SCREENSHOT_IMAGES
+from utils.embedded_image import embedded_image_base64, embedded_mem_image_base64
 
 screen_api = Blueprint("screen_api", __name__)
 
@@ -61,3 +64,19 @@ def get_text_area():
     y2 = request.args.get("y2", type=float, default=Screen.screen_image.height)
     area = Screen.Area((x1, x2), (y1, y2))
     return jsonify(Screen.get_text(area))
+
+
+@screen_api.get("/api/v1/screen")
+@swag_from("screen.yml")
+def current_image():
+    if not Screen.screen_data:
+        debug(
+            f"[INFO] Reload image: `{SCREENSHOT_IMAGES}`, check_valid: {os.path.isfile(SCREENSHOT_IMAGES)}"
+        )
+        image_data = embedded_image_base64(SCREENSHOT_IMAGES)
+    else:
+        debug("[INFO] Reload in-memory image")
+        image_data = embedded_mem_image_base64(Screen.screen_data)
+    return json.dumps({"image_data": image_data})
+
+
