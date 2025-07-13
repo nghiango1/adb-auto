@@ -15,6 +15,8 @@ buildPythonApplication {
     pytesseract
     numpy
     opencv-python
+    gunicorn
+    python-dotenv
   ];
 
   src = ./.;

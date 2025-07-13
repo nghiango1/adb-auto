@@ -1,4 +1,3 @@
-from dotenv import load_dotenv
 from flasgger import Swagger, swag_from
 from flask import Flask, jsonify, request
 
@@ -7,8 +6,6 @@ from adb_auto.config.setting import DEBUG
 from adb_auto.jobs.screen_reload_job import ScreenReloadJob
 from adb_auto.utils.logger import debug
 from adb_auto.views.home import home_view
-
-load_dotenv()
 
 
 template = {

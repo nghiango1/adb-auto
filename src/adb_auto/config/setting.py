@@ -1,4 +1,8 @@
 import os
+from dotenv import load_dotenv
+
+# Make sure env is correctly load before access any of the variable
+load_dotenv()
 
 
 # Constaint

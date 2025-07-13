@@ -14,3 +14,6 @@ nghiango_adb_auto.egg-info/
 # Nix thing
 result
 result/
+
+# env file
+.env
