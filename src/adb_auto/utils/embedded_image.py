@@ -1,5 +1,5 @@
-import os
 import base64
+import os
 
 
 def embedded_image_base64(image_path: str):

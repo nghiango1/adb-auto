@@ -1,14 +1,17 @@
+import base64
 from dataclasses import dataclass
 import io
-import base64
 from typing import Tuple
+
 from PIL import Image
 from pytesseract import Output, image_to_data
+
+from adb_auto.config.setting import RELOAD_INTERVAL
 
 
 class Screen:
     reload = True
-    reload_interval = 3
+    reload_interval = RELOAD_INTERVAL
 
     screen_data = None
     screen_image: Image.Image

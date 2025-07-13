@@ -1,5 +1,6 @@
 import traceback
-from config.setting import VERBOSE
+
+from adb_auto.config.setting import VERBOSE
 
 
 def debug(*arg, error=False):

@@ -1,16 +1,14 @@
-from dataclasses import dataclass
-import os
-import threading
-import time
-
+from dotenv import load_dotenv
 from flasgger import Swagger, swag_from
-from flask import Flask, jsonify, render_template, request
-from config.setting import DEBUG, SCREENSHOT_IMAGES
-from utils.embedded_image import embedded_image_base64
+from flask import Flask, jsonify, request
 
-from adb_auto.adb.device import Device
-from adb_auto.screen import Screen
 from adb_auto.api.v1.screen import screen_api
+from adb_auto.config.setting import DEBUG
+from adb_auto.jobs.screen_reload_job import ScreenReloadJob
+from adb_auto.utils.logger import debug
+from adb_auto.views.home import home_view
+
+load_dotenv()
 
 
 template = {
@@ -27,32 +25,10 @@ app.config["SWAGGER"] = {"title": "Adb Auto API", "uiversion": 3}
 swagger = Swagger(app, template=template)
 
 app.register_blueprint(screen_api)
+app.register_blueprint(home_view)
 
 
-@dataclass
-class ApiInfo:
-    path: str
-    docs: str
-
-
-class ADB_AUTO_API_INFO:
-    SCREEN = ApiInfo("/api/v1/screen", "docs/v1/screen.yml")
-
-
-@app.route("/")
-def home():
-    print(
-        f"[INFO] First load image: `{SCREENSHOT_IMAGES}`, check_valid: {os.path.isfile(SCREENSHOT_IMAGES)}"
-    )
-    image_data = embedded_image_base64(SCREENSHOT_IMAGES)
-    return render_template(
-        "index.html",
-        image_data=image_data,
-        reload_interval=Screen.reload_interval,
-        get_current_screen_api_path=ADB_AUTO_API_INFO.SCREEN.path,
-    )
-
-
+# Health check the server
 @app.route("/api/hello")
 @swag_from("docs/hello.yml")
 def hello():
@@ -61,22 +37,23 @@ def hello():
     return jsonify(result)
 
 
-def reload_screen_shot_image(device: Device):
-    while True:
-        if Screen.reload:
-            Screen.screen_data, _ = device.take_screenshot(to_file=False)
-            Screen.update()
-        time.sleep(Screen.reload_interval)
+# Spawn as many thread as you wanted here :)
+def start_background_jobs():
+    ScreenReloadJob.start()
+
+
+# Then try to exit each of them
+def exit_background_jobs():
+    debug("[INFO] Try to exit background jobs")
+    ScreenReloadJob.stop()
 
 
 def main():
-    device = Device()
-    device.take_screenshot()
     # for i in [1, 10, 100, 200, 300, 400, 500]:
     #     device.inputTap(i, i)
-
-    threading.Thread(target=reload_screen_shot_image, args=(device,)).start()
+    start_background_jobs()
     app.run(debug=DEBUG)
+    exit_background_jobs()
 
 
 if __name__ == "__main__":

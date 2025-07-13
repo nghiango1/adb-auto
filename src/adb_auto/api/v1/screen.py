@@ -4,10 +4,13 @@ import os
 from flasgger import swag_from
 from flask import Blueprint, jsonify, request
 
+from adb_auto.config.setting import SCREENSHOT_IMAGES
 from adb_auto.screen import Screen
+from adb_auto.utils.embedded_image import (
+    embedded_image_base64,
+    embedded_mem_image_base64,
+)
 from adb_auto.utils.logger import debug
-from config.setting import SCREENSHOT_IMAGES
-from utils.embedded_image import embedded_image_base64, embedded_mem_image_base64
 
 screen_api = Blueprint("screen_api", __name__)
 
@@ -78,5 +81,3 @@ def current_image():
         debug("[INFO] Reload in-memory image")
         image_data = embedded_mem_image_base64(Screen.screen_data)
     return json.dumps({"image_data": image_data})
-
-
