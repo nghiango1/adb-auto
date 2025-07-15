@@ -27,9 +27,26 @@
           .catch((err) => console.error("Error loading image:", err));
       }
 
+      function handleImageClick(event) {
+        const img = event.target;
+        const rect = img.getBoundingClientRect();
+        const scaleX = img.naturalWidth / img.width;
+        const scaleY = img.naturalHeight / img.height;
+
+        const x = Math.round((event.clientX - rect.left) * scaleX);
+        const y = Math.round((event.clientY - rect.top) * scaleY);
+
+        fetch(`/api/v1/screen/tap?x=${x}&y=${y}`, {
+          method: "GET",
+        });
+      }
+
       window.onload = function () {
         updateImage();
         setInterval(updateImage, {{reload_interval}} * 1000); // 1 s
+
+        const img = document.getElementById("dynamic-image");
+        img.addEventListener("click", handleImageClick);
       };
     </script>
   </head>

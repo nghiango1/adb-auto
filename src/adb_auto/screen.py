@@ -8,6 +8,9 @@ from pytesseract import Output, image_to_data
 
 from adb_auto.adb.device import Device
 from adb_auto.config.setting import RELOAD_INTERVAL
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Screen:
@@ -38,8 +41,11 @@ class Screen:
 
     @staticmethod
     def update():
+        """This take around 3s"""
+        logger.info("Update image data")
+        Screen.screen_data, _ = Screen.device.take_screenshot(to_file=False)
         if not Screen.screen_data:
-            print("[INFO] failed to update Image data")
+            logger.warn("Failed to update image data")
             return
         io_bytes = io.BytesIO(Screen.screen_data)
         Screen.screen_image = Image.open(io_bytes)

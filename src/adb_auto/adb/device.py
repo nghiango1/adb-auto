@@ -7,14 +7,6 @@ import re
 import math
 
 
-def retSysCall(command):
-    # Simple function that returns the output from a system call
-    process = Popen(command.split(), stdout=PIPE, stderr=PIPE)
-    stdout, stderr = process.communicate()
-    lines = stdout.decode().splitlines()
-    return lines
-
-
 class Device:
     @staticmethod
     def connect_device(device_id=""):
@@ -91,9 +83,9 @@ class Device:
         if percent:
             x = (x / 100) * self.screenWidth
             y = (y / 100) * self.screenHeight
-            os.system(f"adb -s {self.deviceId} shell input tap {x} {y}")
+            Device.retSysCall(f"adb -s {self.deviceId} shell input tap {x} {y}")
         else:
-            os.system(f"adb -s {self.deviceId} shell input tap {x} {y}")
+            Device.retSysCall(f"adb -s {self.deviceId} shell input tap {x} {y}")
 
     def inputSwipe(self, x1, y1, x2, y2, time=200, percent=False):
         # """
@@ -112,11 +104,11 @@ class Device:
             y1 = (y1 / 100) * self.screenHeight
             x2 = (x2 / 100) * self.screenWidth
             y2 = (y2 / 100) * self.screenHeight
-            os.system(
+            Device.retSysCall(
                 f"adb -s {self.deviceId} shell input swipe {x1} {y1} {x2} {y2} {time}"
             )
         else:
-            os.system(
+            Device.retSysCall(
                 f"adb -s {self.deviceId} shell input swipe {x1} {y1} {x2} {y2} {time}"
             )
 
@@ -127,49 +119,49 @@ class Device:
         # 	text (str): Text to input
         # """
         text = text.replace(" ", "%s")
-        os.system(f"adb -s {self.deviceId} shell input text '{text}'")
+        Device.retSysCall(f"adb -s {self.deviceId} shell input text '{text}'")
 
     def pressHome(self):
         # """
         # Function that pressed the center home button on your device
         # """
-        os.system(f"adb -s {self.deviceId} shell input keyevent KEYCODE_HOME")
+        Device.retSysCall(f"adb -s {self.deviceId} shell input keyevent KEYCODE_HOME")
 
     def pressBack(self):
         # """
         # Function that pressed the back button on your device
         # """
-        os.system(f"adb -s {self.deviceId} shell input keyevent KEYCODE_BACK")
+        Device.retSysCall(f"adb -s {self.deviceId} shell input keyevent KEYCODE_BACK")
 
     def pressPower(self):
         # """
         # Function that presses the power button on your device
         # """
-        os.system(f"adb -s {self.deviceId} shell input keyevent KEYCODE_POWER")
+        Device.retSysCall(f"adb -s {self.deviceId} shell input keyevent KEYCODE_POWER")
 
     def wakeup(self):
         # """
         # Function that wake's your device if it is not already awake
         # """
-        os.system(f"adb -s {self.deviceId} shell input keyevent KEYCODE_WAKEUP")
+        Device.retSysCall(f"adb -s {self.deviceId} shell input keyevent KEYCODE_WAKEUP")
 
     def sleep(self):
         # """
         # Function that puts your device to sleep if it is awake
         # """
-        os.system(f"adb -s {self.deviceId} shell input keyevent KEYCODE_SLEEP")
+        Device.retSysCall(f"adb -s {self.deviceId} shell input keyevent KEYCODE_SLEEP")
 
     def volumeUp(self):
         # """
         # Function that presses the volume up button on your device
         # """
-        os.system(f"adb -s {self.deviceId} shell input keyevent KEYCODE_VOLUME_UP")
+        Device.retSysCall(f"adb -s {self.deviceId} shell input keyevent KEYCODE_VOLUME_UP")
 
     def volumeDown(self):
         # """
         # Function that presses the volume down button on your device
         # """
-        os.system(f"adb -s {self.deviceId} shell input keyevent KEYCODE_VOLUME_DOWN")
+        Device.retSysCall(f"adb -s {self.deviceId} shell input keyevent KEYCODE_VOLUME_DOWN")
 
     def keycodeEvent(self, keycode):
         # """
@@ -178,7 +170,7 @@ class Device:
         # Args:
         # 	keycode (str/int): The string or integer description of the wanted keycode
         # """
-        os.system(f"adb -s {self.deviceId} shell input keyevent {keycode}")
+        Device.retSysCall(f"adb -s {self.deviceId} shell input keyevent {keycode}")
 
     def inputRandom(self, app, numEvents):
         # """
@@ -187,8 +179,8 @@ class Device:
         # app (str): which app to launch for random input
         # numEvents (int): number of random inputs to inject
         # """
-        os.system(f"adb -s {self.deviceId} shell am force-stop {app}")
-        os.system(f"adb -s {self.deviceId} shell monkey -p {app} -v {numEvents}")
+        Device.retSysCall(f"adb -s {self.deviceId} shell am force-stop {app}")
+        Device.retSysCall(f"adb -s {self.deviceId} shell monkey -p {app} -v {numEvents}")
 
     def tapNode(self, nodeName):
         # """
@@ -215,7 +207,7 @@ class Device:
             "events"
         ):  # make the events directory if it does not exist
             os.makedirs("events")
-        os.system(
+        Device.retSysCall(
             f"adb -s {self.deviceId} shell getevent -t /dev/input/event{self.eventId} > ./events/{event}"
         )  # get input from device
 
@@ -225,9 +217,9 @@ class Device:
         # Args:
         # 	event (str): Name of the recorded file to play
         # """
-        os.system(f"adb -s {self.deviceId} push ./src/mysendevent_arm /data/local/tmp/")
-        os.system(f"adb -s {self.deviceId} push ./events/{event} /sdcard/")
-        os.system(
+        Device.retSysCall(f"adb -s {self.deviceId} push ./src/mysendevent_arm /data/local/tmp/")
+        Device.retSysCall(f"adb -s {self.deviceId} push ./events/{event} /sdcard/")
+        Device.retSysCall(
             f"adb -s {self.deviceId} shell /data/local/tmp/mysendevent_arm /dev/input/event{self.eventId} /sdcard/{event}"
         )
 
@@ -237,8 +229,8 @@ class Device:
         # Args:
         # 	app (str): Launches the supplied app. Apps may be listed in the CLI with listApps()
         # """
-        os.system(f"adb -s {self.deviceId} shell am force-stop {app}")
-        os.system(f"adb -s {self.deviceId} shell monkey -p {app} -v 1")
+        Device.retSysCall(f"adb -s {self.deviceId} shell am force-stop {app}")
+        Device.retSysCall(f"adb -s {self.deviceId} shell monkey -p {app} -v 1")
         # wait for app to open
         # line = [""]
         # while app not in line[0]:
@@ -253,7 +245,7 @@ class Device:
         # Args:
         # 	app (str): Closes the supplied app. Apps may be listed in the CLI with listApps()
         # """
-        os.system(f"adb -s {self.deviceId} shell am force-stop {app}")
+        Device.retSysCall(f"adb -s {self.deviceId} shell am force-stop {app}")
 
     def listEvents(self):
         # """
@@ -277,7 +269,7 @@ class Device:
         # Args:
         # 	search (str): A search criteria that will grep through the output of the command `adb shell pm list packages`
         # """
-        lines = retSysCall(f"adb -s {self.deviceId} shell pm list packages")
+        lines = Device.retSysCall(f"adb -s {self.deviceId} shell pm list packages")
         for line in lines:
             if search.lower() in line.lower():
                 print(line[8:])
@@ -286,7 +278,7 @@ class Device:
         # """
         # Function that will list all of the installed packages on your device
         # """
-        lines = retSysCall(f"adb -s {self.deviceId} shell pm list packages")
+        lines = Device.retSysCall(f"adb -s {self.deviceId} shell pm list packages")
         for line in lines:
             print(line[8:])
 
@@ -299,7 +291,7 @@ class Device:
         # 	eventId (str): the number corresponding to the touch screen eventId
         # """
         # Get output of adb shell getevent -lp command for parsing
-        lines = retSysCall(f"adb -s {self.deviceId} shell getevent -lp")
+        lines = Device.retSysCall(f"adb -s {self.deviceId} shell getevent -lp")
         # Process the output to determine the touch device event id
         eventId = None
         for line in lines:
@@ -338,7 +330,7 @@ class Device:
         # 	nodes (list of node objects): a list of node objects for further processing
         # """
         # Get screen dump to file
-        os.system(
+        Device.retSysCall(
             f"adb -s {self.deviceId} pull $(adb -s {self.deviceId} shell uiautomator dump | grep -oP '[^ ]+.xml') ./screendump.xml"
         )
         # Process xml and output it to file for viewing pleasure
@@ -398,7 +390,7 @@ class Device:
         # Returns:
         # 	deviceId or False: depending on the outcome of validation
         # """
-        lines = retSysCall(f"adb devices")
+        lines = Device.retSysCall(f"adb devices")
         # Determine size
         for line in lines[1:]:
             if deviceId in line:

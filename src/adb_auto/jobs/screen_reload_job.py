@@ -3,7 +3,9 @@ import time
 
 from adb_auto.config.setting import TOTAL_DIVIDE
 from adb_auto.screen import Screen
-from adb_auto.utils.logger import debug
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class ScreenReloadJob:
@@ -11,21 +13,16 @@ class ScreenReloadJob:
 
     @staticmethod
     def reload_screen_shot_image():
-        debug("[INFO] Start ScreenReloadJob thread")
-        repeat_counter = 0
-        total_divide = TOTAL_DIVIDE
+        logger.info("Started reload_screen_shot_image thread")
         while True and not ScreenReloadJob.killed:
-            if Screen.reload and repeat_counter > total_divide:
-                Screen.screen_data, _ = Screen.device.take_screenshot(to_file=False)
+            if Screen.reload:
                 Screen.update()
-                repeat_counter = 0
-            time.sleep(Screen.reload_interval / total_divide)
-            repeat_counter += 1
 
     thread = threading.Thread(target=reload_screen_shot_image)
 
     @staticmethod
     def start():
+        Screen.update()
         ScreenReloadJob.thread.start()
 
     @staticmethod
@@ -33,5 +30,5 @@ class ScreenReloadJob:
         ScreenReloadJob.killed = True
         ScreenReloadJob.thread.join(3)
         while ScreenReloadJob.thread.is_alive():
-            debug("Retry exiting ScreenReloadJob background thread", error=True)
+            logger.error("Retry exiting ScreenReloadJob background thread")
             ScreenReloadJob.thread.join(3)

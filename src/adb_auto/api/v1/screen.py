@@ -86,21 +86,21 @@ def current_image():
     return json.dumps({"image_data": _get_current_screen()})
 
 
-@screen_api.get("/api/v1/screen")
-@swag_from("screen.yml")
+@screen_api.get("/api/v1/screen/tap")
+@swag_from("tap.yml")
 def tap():
     x = request.args.get("x", type=float, default=Screen.screen_image.width)
     y = request.args.get("y", type=float, default=Screen.screen_image.height)
     Screen.tap((x, y))
-    return json.dumps({"image_data": _get_current_screen()})
+    return jsonify({"res": "success"})
 
 
-@screen_api.get("/api/v1/screen")
-@swag_from("screen.yml")
+@screen_api.get("/api/v1/screen/swipe")
+@swag_from("swipe.yml")
 def swipe():
     x1 = request.args.get("x1", type=float, default=0)
     y1 = request.args.get("y1", type=float, default=0)
     x2 = request.args.get("x2", type=float, default=Screen.screen_image.width)
     y2 = request.args.get("y2", type=float, default=Screen.screen_image.height)
     Screen.swipe((x1, y1), (x2, y2))
-    return json.dumps({"image_data": _get_current_screen()})
+    return jsonify({"res": "success"})

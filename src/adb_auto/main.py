@@ -2,10 +2,16 @@ from flasgger import Swagger, swag_from
 from flask import Flask, jsonify, request
 
 from adb_auto.api.v1.screen import screen_api
-from adb_auto.config.setting import DEBUG
+from adb_auto.config.setting import DEBUG, VERBOSE
 from adb_auto.jobs.screen_reload_job import ScreenReloadJob
 from adb_auto.utils.logger import debug
 from adb_auto.views.home import home_view
+import logging
+
+logging.basicConfig(level=logging.ERROR)
+if VERBOSE:
+    logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 template = {
@@ -36,6 +42,8 @@ def hello():
 
 # Spawn as many thread as you wanted here :)
 def start_background_jobs():
+    logger.info("[INFO] Start all background jobs")
+    print("[INFO] Start all background jobs")
     ScreenReloadJob.start()
 
 
