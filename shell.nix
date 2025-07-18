@@ -10,6 +10,7 @@ pkgs.mkShellNoCC {
 
     tailwindcss_4
     android-tools
+    redis
     scrcpy
   ];
 

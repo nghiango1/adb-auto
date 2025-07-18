@@ -12,7 +12,9 @@ pkgs.mkShellNoCC {
     python312Packages.opencv-python
     python312Packages.gunicorn
     python312Packages.python-dotenv
+    python312Packages.redis
 
+    redis
     tailwindcss_4
     android-tools
     scrcpy

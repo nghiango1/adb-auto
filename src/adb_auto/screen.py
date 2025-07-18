@@ -1,14 +1,15 @@
 import base64
 from dataclasses import dataclass
 import io
+import logging
 from typing import Tuple
 
 from PIL import Image
 from pytesseract import Output, image_to_data
 
 from adb_auto.adb.device import Device
-from adb_auto.config.setting import RELOAD_INTERVAL
-import logging
+from adb_auto.config.setting import RELOAD_INTERVAL, SCREENSHOT_IMAGES
+from adb_auto.utils.redis_helper import r
 
 logger = logging.getLogger(__name__)
 
@@ -17,8 +18,7 @@ class Screen:
     reload = True
     reload_interval = RELOAD_INTERVAL
 
-    screen_data = None
-    screen_image: Image.Image
+    screen_image: Image.Image = Image.open(SCREENSHOT_IMAGES)
 
     device = Device()
 
@@ -40,15 +40,14 @@ class Screen:
             return a
 
     @staticmethod
-    def update():
+    def screen_data():
         """This take around 3s"""
-        logger.info("Update image data")
-        Screen.screen_data, _ = Screen.device.take_screenshot(to_file=False)
-        if not Screen.screen_data:
+        screen_data = r.get("screen_data")
+        if not screen_data:
             logger.warn("Failed to update image data")
-            return
-        io_bytes = io.BytesIO(Screen.screen_data)
+        io_bytes = io.BytesIO(screen_data)
         Screen.screen_image = Image.open(io_bytes)
+        return screen_data
 
     @staticmethod
     def get_text(area: None | Area = None):

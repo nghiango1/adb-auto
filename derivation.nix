@@ -17,6 +17,7 @@ buildPythonApplication {
     opencv-python
     gunicorn
     python-dotenv
+    redis
   ];
 
   src = ./.;

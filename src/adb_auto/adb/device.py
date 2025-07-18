@@ -26,9 +26,9 @@ class Device:
 
     def take_screenshot(self, to_file=True, path="/tmp/screen.png"):
         image = self.device.screencap()
-        with open(path, "wb") as f:
-            f.write(image)
         if to_file:
+            with open(path, "wb") as f:
+                f.write(image)
             return (None, path)
         else:
             return (image, None)

@@ -70,14 +70,14 @@ def get_text_area():
 
 
 def _get_current_screen():
-    if not Screen.screen_data:
+    if not Screen.screen_data():
         debug(
             f"[INFO] Reload image: `{SCREENSHOT_IMAGES}`, check_valid: {os.path.isfile(SCREENSHOT_IMAGES)}"
         )
         return embedded_image_base64(SCREENSHOT_IMAGES)
     else:
         debug("[INFO] Reload in-memory image")
-        return embedded_mem_image_base64(Screen.screen_data)
+        return embedded_mem_image_base64(Screen.screen_data())
 
 
 @screen_api.get("/api/v1/screen")
