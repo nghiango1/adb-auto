@@ -23,3 +23,6 @@ REDIS_SSL_KEYFILE = os.environ.get(
     "REDIS_SSL_KEYFILE", "./local/redis_user_private.key"
 )
 REDIS_SSL_CA_CERTS = os.environ.get("REDIS_SSL_CA_CERTS", "./local/redis_ca.pem")
+
+# Debug
+GET_TEXT_SAVE_PATH = os.environ.get("GET_TEXT_SAVE_PATH", "/tmp")

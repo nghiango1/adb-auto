@@ -9,12 +9,13 @@ def main():
     device = Device()
 
     device.inputTap(70, 152)
-    time.sleep(1)
+    time.sleep(3)
     print(Screen.get_text(GameSetting))
-
+    time.sleep(3)
     print(Screen.get_text(TimeBox))
+    time.sleep(3)
     device.inputTap(524, 1825)
-    time.sleep(1)
+    time.sleep(3)
 
 
 if __name__ == "__main__":

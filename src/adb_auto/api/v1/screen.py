@@ -65,7 +65,7 @@ def get_text_area():
     y1 = request.args.get("y1", type=float, default=0)
     x2 = request.args.get("x2", type=float, default=Screen.screen_image.width)
     y2 = request.args.get("y2", type=float, default=Screen.screen_image.height)
-    area = Screen.Area((x1, x2), (y1, y2))
+    area = Screen.Area((x1, y1), (x2, y2))
     return jsonify(Screen.get_text(area))
 
 

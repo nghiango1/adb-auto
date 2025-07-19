@@ -1,6 +1,7 @@
 import base64
 from dataclasses import dataclass
 import io
+import time
 import logging
 from typing import Tuple
 
@@ -8,7 +9,7 @@ from PIL import Image
 from pytesseract import Output, image_to_data
 
 from adb_auto.adb.device import Device
-from adb_auto.config.setting import RELOAD_INTERVAL, SCREENSHOT_IMAGES
+from adb_auto.config.setting import RELOAD_INTERVAL, SCREENSHOT_IMAGES, GET_TEXT_SAVE_PATH, DEBUG
 from adb_auto.utils.redis_helper import r
 
 logger = logging.getLogger(__name__)
@@ -24,8 +25,16 @@ class Screen:
 
     @dataclass
     class Area:
-        x: Tuple[float, float]
-        y: Tuple[float, float]
+        top_left: Tuple[float, float]
+        bottom_right: Tuple[float, float]
+
+        def to_tuple(self):
+            return (
+                self.top_left[0],
+                self.top_left[1],
+                self.bottom_right[0],
+                self.bottom_right[1],
+            )
 
     class AreaFactory:
         @staticmethod
@@ -35,8 +44,8 @@ class Screen:
         ):
             a = Screen.Area((0, 0), (0, 0))
             width, height = Screen.screen_image.size
-            a.x = (int(x[0] * width), int(x[1] * width))
-            a.y = (int(y[0] * height), int(y[1] * height))
+            a.top_left = (int(x[0] * width), int(x[1] * width))
+            a.bottom_right = (int(y[0] * height), int(y[1] * height))
             return a
 
     @staticmethod
@@ -51,11 +60,13 @@ class Screen:
 
     @staticmethod
     def get_text(area: None | Area = None):
-        if not Screen.screen_image:
+        if not Screen.screen_data():
             return
         image = Screen.screen_image
         if area:
-            image = image.crop((area.x[0], area.y[0], area.x[1], area.y[1]))
+            image = image.crop(area.to_tuple())
+        if DEBUG:
+            image.save(f"{GET_TEXT_SAVE_PATH}/croped-{time.time()}.png")
         data = image_to_data(image, output_type=Output.DICT)
 
         # Create a result with bounding box Area and text contain map
