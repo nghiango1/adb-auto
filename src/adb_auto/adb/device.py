@@ -5,6 +5,9 @@ from subprocess import Popen, PIPE
 import os
 import re
 import math
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Device:
@@ -14,13 +17,13 @@ class Device:
         devices: List[AdbDevice] = adb.devices()
 
         if len(devices) == 0:
-            print("No Devices Attached")
+            logger.error("No Devices Attached")
             quit()
         elif device_id:
             for i in devices:
                 if i.serial == device_id:
                     return i
-            print(f"No Devices id {device_id} found")
+            logger.error(f"No Devices id {device_id} found")
             quit()
         return devices[0]
 
@@ -51,7 +54,7 @@ class Device:
         if not deviceId:
             self.device: AdbDevice = Device.connect_device()
             deviceId = self.device.serial
-            print(f"Automate target ID: {deviceId}")
+            logger.info(f"Automate target ID: {deviceId}")
         else:
             self.device: AdbDevice = Device.connect_device(deviceId)
         self.verbose = verbose
@@ -59,15 +62,14 @@ class Device:
         self.deviceId = self.validateDevice(deviceId)
         # validateDevice returns False if the deviceId provided is not in `adb devices`
         if not self.deviceId:
-            print("Invalid deviceId")
+            logger.error("Invalid deviceId")
             quit()
         self.eventId = self.detEventId()
         self.screenWidth, self.screenHeight = self.screenSize()
 
-        if self.verbose:
-            print(f"Valid deviceId: {self.deviceId}")
-            print(f"Screen Width: {self.screenWidth}")
-            print(f"Screen Height: {self.screenHeight}\n")
+        logger.info(f"Valid deviceId: {self.deviceId}")
+        logger.info(f"Screen Width: {self.screenWidth}")
+        logger.info(f"Screen Height: {self.screenHeight}\n")
 
     # INPUT METHODS ###################################################################################################
     def inputTap(self, x, y, percent=False):
@@ -155,13 +157,17 @@ class Device:
         # """
         # Function that presses the volume up button on your device
         # """
-        Device.retSysCall(f"adb -s {self.deviceId} shell input keyevent KEYCODE_VOLUME_UP")
+        Device.retSysCall(
+            f"adb -s {self.deviceId} shell input keyevent KEYCODE_VOLUME_UP"
+        )
 
     def volumeDown(self):
         # """
         # Function that presses the volume down button on your device
         # """
-        Device.retSysCall(f"adb -s {self.deviceId} shell input keyevent KEYCODE_VOLUME_DOWN")
+        Device.retSysCall(
+            f"adb -s {self.deviceId} shell input keyevent KEYCODE_VOLUME_DOWN"
+        )
 
     def keycodeEvent(self, keycode):
         # """
@@ -180,7 +186,9 @@ class Device:
         # numEvents (int): number of random inputs to inject
         # """
         Device.retSysCall(f"adb -s {self.deviceId} shell am force-stop {app}")
-        Device.retSysCall(f"adb -s {self.deviceId} shell monkey -p {app} -v {numEvents}")
+        Device.retSysCall(
+            f"adb -s {self.deviceId} shell monkey -p {app} -v {numEvents}"
+        )
 
     def tapNode(self, nodeName):
         # """
@@ -217,7 +225,9 @@ class Device:
         # Args:
         # 	event (str): Name of the recorded file to play
         # """
-        Device.retSysCall(f"adb -s {self.deviceId} push ./src/mysendevent_arm /data/local/tmp/")
+        Device.retSysCall(
+            f"adb -s {self.deviceId} push ./src/mysendevent_arm /data/local/tmp/"
+        )
         Device.retSysCall(f"adb -s {self.deviceId} push ./events/{event} /sdcard/")
         Device.retSysCall(
             f"adb -s {self.deviceId} shell /data/local/tmp/mysendevent_arm /dev/input/event{self.eventId} /sdcard/{event}"
@@ -296,7 +306,7 @@ class Device:
         eventId = None
         for line in lines:
             if line[0:10] == "add device":  # Match add device lines
-                print(line, re.findall(r"(\d+)$", line))
+                logger.info(line, re.findall(r"(\d+)$", line))
                 # regex for getting the number at the end
                 eventId = re.findall(r"(\d+)$", line)[0]
             if line[0:7] == "  name:":
@@ -304,8 +314,7 @@ class Device:
                     "qwerty", line, re.IGNORECASE
                 ):
                     # assert eventId
-                    if self.verbose:
-                        print(f"Found eventId: '{eventId}' in: '{line}'")
+                    logger.info(f"Found eventId: '{eventId}' in: '{line}'")
                     return eventId
         # Nothing was found
         return "###EventId-not-found###"

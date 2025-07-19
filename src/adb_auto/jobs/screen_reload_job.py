@@ -21,15 +21,14 @@ class ScreenReloadJob:
     def reload_screen_shot_image():
         logger.info("Started reload_screen_shot_image thread")
         while True and not ScreenReloadJob.killed:
+            if r.get(Screen.RedisKeys.JUST_RELOAD) == "true":
+                time.sleep(1)
+                continue
             start = end = 0
-            if r.get("screen_reload") != "false":
+            if r.get(Screen.RedisKeys.RELOAD_TOGGLE) != "false":
                 start = time.time()
-                data, _ = Screen.device.take_screenshot(to_file=False)
+                Screen.update()
                 end = time.time()
-                if data:
-                    r.set("screen_data", bytes(data))
-                    h = hash(bytes(data))
-                    logger.info(f"Reloaded and push to redis {h}")
 
             remain = RELOAD_INTERVAL - end - start
             if remain > 0:

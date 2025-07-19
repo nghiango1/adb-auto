@@ -1,21 +1,17 @@
-from adb_auto.adb.device import Device
 from adb_auto.screen import Screen
-import time
 
 TimeBox = Screen.Area((650, 605), (779, 652))
 GameSetting = Screen.Area((424, 553), (659, 597))
 
-def main():
-    device = Device()
+ProfilePos = (70, 152)
+SaveSettingPos = (524, 1825)
 
-    device.inputTap(70, 152)
-    time.sleep(3)
+
+def main():
+    Screen.tap(ProfilePos, force_reload=True)
     print(Screen.get_text(GameSetting))
-    time.sleep(3)
     print(Screen.get_text(TimeBox))
-    time.sleep(3)
-    device.inputTap(524, 1825)
-    time.sleep(3)
+    Screen.tap(SaveSettingPos)
 
 
 if __name__ == "__main__":

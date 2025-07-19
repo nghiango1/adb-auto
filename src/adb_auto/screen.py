@@ -4,18 +4,30 @@ import io
 import time
 import logging
 from typing import Tuple
+from datetime import timedelta
 
 from PIL import Image
 from pytesseract import Output, image_to_data
 
 from adb_auto.adb.device import Device
-from adb_auto.config.setting import RELOAD_INTERVAL, SCREENSHOT_IMAGES, GET_TEXT_SAVE_PATH, DEBUG
+from adb_auto.config.setting import (
+    RELOAD_INTERVAL,
+    SCREENSHOT_IMAGES,
+    GET_TEXT_SAVE_PATH,
+    DEBUG,
+)
 from adb_auto.utils.redis_helper import r
 
 logger = logging.getLogger(__name__)
 
 
 class Screen:
+    class RedisKeys:
+        RELOAD_INTERVAL = "reload_interval"
+        CURRENT_SCREEN = "screen_data"
+        JUST_RELOAD = "just_reload"
+        RELOAD_TOGGLE = "screen_reload"
+
     reload = True
     reload_interval = RELOAD_INTERVAL
 
@@ -49,9 +61,27 @@ class Screen:
             return a
 
     @staticmethod
+    def update(force_reload=False):
+        """Update current screen
+
+        Args:
+            force_reload (): Incase of manually reloading the screen, set this to true so that background automate won't need to run for that interval
+        """
+        data, _ = Screen.device.take_screenshot(to_file=False)
+        if data:
+            r.set(Screen.RedisKeys.CURRENT_SCREEN, bytes(data))
+            if force_reload:
+                r.set(
+                    Screen.RedisKeys.JUST_RELOAD,
+                    "true",
+                    timedelta(seconds=RELOAD_INTERVAL),
+                )
+            logger.info(f"Reloaded and push to redis {time.time()}")
+
+    @staticmethod
     def screen_data():
         """This take around 3s"""
-        screen_data = r.get("screen_data")
+        screen_data = r.get(Screen.RedisKeys.CURRENT_SCREEN)
         if not screen_data:
             logger.warn("Failed to update image data")
         io_bytes = io.BytesIO(screen_data)
@@ -59,7 +89,7 @@ class Screen:
         return screen_data
 
     @staticmethod
-    def get_text(area: None | Area = None):
+    def get_text(area: None | Area = None, return_image=False):
         if not Screen.screen_data():
             return
         image = Screen.screen_image
@@ -82,29 +112,36 @@ class Screen:
                     }
                     result["text"].append({"position": bbox, "value": text})
 
-        img_byte_arr = io.BytesIO()
-        image.save(img_byte_arr, format="PNG")
-        enc = base64.b64encode(img_byte_arr.getvalue()).decode("utf-8")
+        enc = ""
+        if return_image:
+            img_byte_arr = io.BytesIO()
+            image.save(img_byte_arr, format="PNG")
+            enc = base64.b64encode(img_byte_arr.getvalue()).decode("utf-8")
         result["image"] = {
-            "width": Screen.screen_image.width,
-            "height": Screen.screen_image.height,
-            "data": f"data:image/png;base64,{enc}",
+            "x": area.top_left[0] if area else 0,
+            "y": area.top_left[1] if area else 0,
+            "width": image.width,
+            "height": image.height,
+            "data": f"data:image/png;base64,{enc}" if enc else "",
         }
 
         return result
 
     @staticmethod
-    def tap(position: Tuple[float, float]):
+    def tap(position: Tuple[float, float], force_reload=False):
         if not Screen.screen_image:
             return
         x, y = position
         Screen.device.inputTap(x, y)
+        if force_reload:
+            Screen.update(force_reload)
 
     @staticmethod
     def swipe(
         position1: Tuple[float, float],
         position2: Tuple[float, float],
         time: int = 200,
+        force_reload=False,
     ):
         if not Screen.screen_image:
             return
@@ -118,3 +155,5 @@ class Screen:
             time=time,
             percent=False,
         )
+        if force_reload:
+            Screen.update(force_reload)
