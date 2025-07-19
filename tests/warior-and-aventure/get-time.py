@@ -48,19 +48,25 @@ class GameTime:
 
     @staticmethod
     def get_time():
+        print("[INFO] Try to get game's time")
         retry = TOTAL_RETRY
+        print("[INFO] Open setting")
         while not GameTime.setting_open():
             if retry < TOTAL_RETRY:
+                print("[WARN] Open setting failed, retrying")
                 sleep(1)
             retry -= 1
             if retry == 0:
+                print("[ERROR] Open setting failed, quit")
                 logger.error("Can't open setting")
                 exit(1)
             Screen.tap(GameTime.ProfilePos, force_reload=True)
 
+        print("[INFO] Get game's time")
         curr_time_str = GameTime.text_only(Screen.get_text(GameTime.TimeBox))
 
         # Assumming we can close the setting
+        print("[INFO] Close setting")
         Screen.tap(GameTime.SaveSettingPos)
         return GameTime.to_time(curr_time_str)
 
@@ -70,10 +76,12 @@ class GameEvent:
 
     @staticmethod
     def update_time(curr_time: Optional[time] = None):
-        if curr_time:
+        print("[INFO] Update current game time for Event tracking")
+        if curr_time is not None:
             GameEvent.curr_time = curr_time
         else:
             if GameEvent.curr_time == time(0, 0, 0):
+                print("[WARN] Found default time value, try getting Game time again")
                 curr_time = GameTime.get_time()
 
     @staticmethod
