@@ -31,7 +31,7 @@ class ScreenReloadJob:
                 end = time.time()
 
             remain = RELOAD_INTERVAL - end - start
-            if remain > 0:
+            if remain > 0 and not ScreenReloadJob.killed:
                 time.sleep(remain)
 
     thread = threading.Thread(target=reload_screen_shot_image)

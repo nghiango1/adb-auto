@@ -1,14 +1,18 @@
 import logging
 from typing import Optional
 from adb_auto.screen import Screen
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 from time import sleep
 
 TOTAL_RETRY = 3
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 class GameTime:
+    curr = time(0, 0, 0)
+    last_update = datetime.now()
+
     @staticmethod
     def to_time(curr_str: str) -> time:
         t = datetime.strptime(curr_str, "%H:%M:%S").time()
@@ -29,17 +33,20 @@ class GameTime:
     SaveSettingPos = (524, 1825)
 
     @staticmethod
-    def text_only(res) -> str:
+    def text_only(data) -> str:
         # Example return
         # {'text': [{'position': {'x': (8, 100), 'y': (9, 35)}, 'value': 'Game'}, {'position': {'x': (112, 225), 'y': (8, 42)}, 'value': 'Setting'}], 'image': {'x': 424, 'y': 553, 'width': 235, 'height': 44, 'data': ''}}
-        texts = res.get("text", [])
+        print(f"[INFO] (text_only) Found = {data}")
+        texts = data.get("text", [])
         grouped_text = []
         for ins in texts:
             val = ins.get("value", "")
             if val:
                 grouped_text.append(val)
 
-        return " ".join(grouped_text)
+        res = " ".join(grouped_text)
+        print(f"[INFO] (text_only) Grouped text = {res}")
+        return res
 
     @staticmethod
     def setting_open() -> bool:
@@ -47,7 +54,7 @@ class GameTime:
         return GameTime.text_only(res) == "Game Setting"
 
     @staticmethod
-    def get_time():
+    def get_time() -> time:
         print("[INFO] Try to get game's time")
         retry = TOTAL_RETRY
         print("[INFO] Open setting")
@@ -70,39 +77,51 @@ class GameTime:
         Screen.tap(GameTime.SaveSettingPos)
         return GameTime.to_time(curr_time_str)
 
-
-class GameEvent:
-    curr_time = time(0, 0, 0)
-
     @staticmethod
     def update_time(curr_time: Optional[time] = None):
         print("[INFO] Update current game time for Event tracking")
         if curr_time is not None:
-            GameEvent.curr_time = curr_time
+            GameTime.curr = curr_time
         else:
-            if GameEvent.curr_time == time(0, 0, 0):
+            if GameTime.curr == time(0, 0, 0):
                 print("[WARN] Found default time value, try getting Game time again")
-                curr_time = GameTime.get_time()
+                GameTime.curr = GameTime.get_time()
+        last_update = datetime.now()
 
     @staticmethod
+    def guess_time() -> time:
+        """Guess the current game time base on the total time have passed"""
+        if GameTime.curr == time(0, 0, 0):
+            print("[WARN] Found default time value, try getting Game time again")
+            GameTime.update_time()
+
+        delta = datetime.now() - GameTime.last_update
+        dummy_date = datetime.combine(datetime.today(), GameTime.curr)
+
+        new_date = dummy_date + delta
+
+        UTC_time = datetime.now()
+        if new_date - UTC_time > timedelta(minutes=1):
+            return UTC_time.time()
+        return new_date.time()
+
+
+class GameEvent:
+    @staticmethod
     def daily_reset():
-        daily_reset = GameTime.after(GameEvent.curr_time, time(6, 00, 0))
-        print(f"[INFO] daily_reset = {daily_reset}, at: {GameEvent.curr_time}")
+        daily_reset = GameTime.after(GameTime.guess_time(), time(6, 00, 0))
+        print(f"[INFO] daily_reset = {daily_reset}, at: {GameTime.curr}")
         return daily_reset
 
     @staticmethod
     def demon_invasion_1st_wave():
-        demon_invasion = GameTime.after(GameEvent.curr_time, time(16, 30, 0))
-        print(
-            f"[INFO] demon_invasion 1st wave = {demon_invasion}, at: {GameEvent.curr_time}"
-        )
+        demon_invasion = GameTime.after(GameTime.guess_time(), time(16, 30, 0))
+        print(f"[INFO] demon_invasion 1st wave = {demon_invasion}, at: {GameTime.curr}")
         return demon_invasion
 
 
 def main():
-    curr_time = GameTime.get_time()
-
-    GameEvent.update_time(curr_time)
+    GameTime.update_time()
     GameEvent.daily_reset()
     GameEvent.demon_invasion_1st_wave()
 
