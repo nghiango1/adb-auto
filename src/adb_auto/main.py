@@ -43,13 +43,12 @@ def hello():
 # Spawn as many thread as you wanted here :)
 def start_background_jobs():
     logger.info("[INFO] Start all background jobs")
-    print("[INFO] Start all background jobs")
     ScreenReloadJob.start()
 
 
 # Then try to exit each of them
 def exit_background_jobs():
-    debug("[INFO] Try to exit background jobs")
+    logger.info("[INFO] Try to exit background jobs")
     ScreenReloadJob.stop()
 
 

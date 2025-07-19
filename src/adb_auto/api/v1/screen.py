@@ -1,5 +1,6 @@
 import json
 import os
+import logging
 
 from flasgger import swag_from
 from flask import Blueprint, jsonify, request
@@ -12,6 +13,7 @@ from adb_auto.utils.embedded_image import (
 )
 from adb_auto.utils.logger import debug
 
+logger = logging.getLogger(__name__)
 screen_api = Blueprint("screen_api", __name__)
 
 
@@ -71,12 +73,12 @@ def get_text_area():
 
 def _get_current_screen():
     if not Screen.screen_data():
-        debug(
+        logger.info(
             f"[INFO] Reload image: `{SCREENSHOT_IMAGES}`, check_valid: {os.path.isfile(SCREENSHOT_IMAGES)}"
         )
         return embedded_image_base64(SCREENSHOT_IMAGES)
     else:
-        debug("[INFO] Reload in-memory image")
+        logger.info("[INFO] Reload in-memory image")
         return embedded_mem_image_base64(Screen.screen_data())
 
 
