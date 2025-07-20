@@ -70,12 +70,23 @@ class GameTime:
             Screen.tap(GameTime.ProfilePos, force_reload=True)
 
         print("[INFO] Get game's time")
-        curr_time_str = GameTime.text_only(Screen.get_text(GameTime.TimeBox))
+        res = time(0, 0, 0)
+        retry = TOTAL_RETRY
+        while retry > 0:
+            try:
+                curr_time_str = GameTime.text_only(Screen.get_text(GameTime.TimeBox))
+                res = GameTime.to_time(curr_time_str)
+                break
+            except Exception as _:
+                print("[WARN] Error getting timer, trying")
+                retry -= 1
 
         # Assumming we can close the setting
         print("[INFO] Close setting")
-        Screen.tap(GameTime.SaveSettingPos)
-        return GameTime.to_time(curr_time_str)
+        while GameTime.setting_open():
+            Screen.tap(GameTime.SaveSettingPos, force_reload=True)
+            print("[WARN] Error closing setting, retrying")
+        return res
 
     @staticmethod
     def update_time(curr_time: Optional[time] = None):
@@ -110,13 +121,15 @@ class GameEvent:
     @staticmethod
     def daily_reset():
         daily_reset = GameTime.after(GameTime.guess_time(), time(6, 00, 0))
-        print(f"[INFO] daily_reset = {daily_reset}, at: {GameTime.curr}")
+        print(f"[INFO] daily_reset = {daily_reset}, at: {GameTime.guess_time()}")
         return daily_reset
 
     @staticmethod
     def demon_invasion_1st_wave():
         demon_invasion = GameTime.after(GameTime.guess_time(), time(16, 30, 0))
-        print(f"[INFO] demon_invasion 1st wave = {demon_invasion}, at: {GameTime.curr}")
+        print(
+            f"[INFO] demon_invasion 1st wave = {demon_invasion}, at: {GameTime.guess_time()}"
+        )
         return demon_invasion
 
 

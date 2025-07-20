@@ -1,6 +1,6 @@
 from waa_auto.get_time import GameTime, GameEvent
 from time import sleep
-import threading
+from adb_auto.config.setting import RELOAD_INTERVAL
 
 
 def main():
@@ -8,7 +8,7 @@ def main():
     while True:
         if GameEvent.demon_invasion_1st_wave():
             print("Can fight demon now")
-        sleep(1)
+        sleep(RELOAD_INTERVAL)
 
 
 if __name__ == "__main__":
