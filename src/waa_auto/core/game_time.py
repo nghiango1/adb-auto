@@ -4,14 +4,14 @@ from adb_auto.screen import Screen
 from datetime import datetime, time, timedelta
 from time import sleep
 
-TOTAL_RETRY = 3
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 class GameTime:
     curr = time(0, 0, 0)
     last_update = datetime.now()
+
+    TOTAL_RETRY = 3
 
     @staticmethod
     def to_time(curr_str: str) -> time:
@@ -56,10 +56,10 @@ class GameTime:
     @staticmethod
     def get_time() -> time:
         print("[INFO] Try to get game's time")
-        retry = TOTAL_RETRY
+        retry = GameTime.TOTAL_RETRY
         print("[INFO] Open setting")
         while not GameTime.setting_open():
-            if retry < TOTAL_RETRY:
+            if retry < GameTime.TOTAL_RETRY:
                 print("[WARN] Open setting failed, retrying")
                 sleep(1)
             retry -= 1
@@ -71,7 +71,7 @@ class GameTime:
 
         print("[INFO] Get game's time")
         res = time(0, 0, 0)
-        retry = TOTAL_RETRY
+        retry = GameTime.TOTAL_RETRY
         while retry > 0:
             try:
                 curr_time_str = GameTime.text_only(Screen.get_text(GameTime.TimeBox))
@@ -115,29 +115,3 @@ class GameTime:
         if new_date - UTC_time > timedelta(minutes=1):
             return UTC_time.time()
         return new_date.time()
-
-
-class GameEvent:
-    @staticmethod
-    def daily_reset():
-        daily_reset = GameTime.after(GameTime.guess_time(), time(6, 00, 0))
-        print(f"[INFO] daily_reset = {daily_reset}, at: {GameTime.guess_time()}")
-        return daily_reset
-
-    @staticmethod
-    def demon_invasion_1st_wave():
-        demon_invasion = GameTime.after(GameTime.guess_time(), time(16, 30, 0))
-        print(
-            f"[INFO] demon_invasion 1st wave = {demon_invasion}, at: {GameTime.guess_time()}"
-        )
-        return demon_invasion
-
-
-def main():
-    GameTime.update_time()
-    GameEvent.daily_reset()
-    GameEvent.demon_invasion_1st_wave()
-
-
-if __name__ == "__main__":
-    main()

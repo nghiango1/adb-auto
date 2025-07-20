@@ -1,4 +1,5 @@
-from waa_auto.get_time import GameTime, GameEvent
+from waa_auto.core.game_time import GameTime
+from waa_auto.core.game_event import GameEvent
 from time import sleep
 from adb_auto.config.setting import RELOAD_INTERVAL
 
