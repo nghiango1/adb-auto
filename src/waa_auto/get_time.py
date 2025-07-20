@@ -26,11 +26,17 @@ class GameTime:
     def after(curr: time, start: time):
         return curr >= start
 
-    TimeBox = Screen.Area((650, 605), (779, 652))
-    GameSetting = Screen.Area((424, 553), (659, 597))
+    # TimeBox = Screen.Area((650, 605), (779, 652))
+    # GameSetting = Screen.Area((424, 553), (659, 597))
+    original_screen = (540, 1170)
+    top_padding = 33
+    TimeBox = Screen.Area((323, 306), (382, 329), original_screen, top_padding)
+    GameSetting = Screen.Area((214, 277), (331, 297), original_screen, top_padding)
 
-    ProfilePos = (70, 152)
-    SaveSettingPos = (524, 1825)
+    # ProfilePos = Screen.Pos(70, 152)
+    # SaveSettingPos = Screen.Pos(524, 1825)
+    ProfilePos = Screen.Pos(38, 70, original_screen, top_padding)
+    SaveSettingPos = Screen.Pos(262, 909, original_screen, top_padding)
 
     @staticmethod
     def text_only(data) -> str:
@@ -50,7 +56,7 @@ class GameTime:
 
     @staticmethod
     def setting_open() -> bool:
-        res = Screen.get_text(GameTime.GameSetting)
+        res = Screen.get_text(GameTime.GameSetting, percented=True)
         return GameTime.text_only(res) == "Game Setting"
 
     @staticmethod
@@ -70,12 +76,23 @@ class GameTime:
             Screen.tap(GameTime.ProfilePos, force_reload=True)
 
         print("[INFO] Get game's time")
-        curr_time_str = GameTime.text_only(Screen.get_text(GameTime.TimeBox))
+
+        res = time(0, 0, 0)
+        retry = TOTAL_RETRY
+        while retry > 0:
+            try:
+                curr_time_str = GameTime.text_only(
+                    Screen.get_text(GameTime.TimeBox, percented=True)
+                )
+                res = GameTime.to_time(curr_time_str)
+            except Exception as _:
+                print("[ERROR] Get time failed, retrying")
+                retry -= 1
 
         # Assumming we can close the setting
         print("[INFO] Close setting")
         Screen.tap(GameTime.SaveSettingPos)
-        return GameTime.to_time(curr_time_str)
+        return res
 
     @staticmethod
     def update_time(curr_time: Optional[time] = None):
@@ -86,7 +103,7 @@ class GameTime:
             if GameTime.curr == time(0, 0, 0):
                 print("[WARN] Found default time value, try getting Game time again")
                 GameTime.curr = GameTime.get_time()
-        last_update = datetime.now()
+        GameTime.last_update = datetime.now()
 
     @staticmethod
     def guess_time() -> time:

@@ -93,7 +93,7 @@ def current_image():
 def tap():
     x = request.args.get("x", type=float, default=Screen.screen_image.width)
     y = request.args.get("y", type=float, default=Screen.screen_image.height)
-    Screen.tap((x, y))
+    Screen.tap(Screen.Pos(x, y))
     return jsonify({"res": "success"})
 
 

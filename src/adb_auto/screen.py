@@ -32,13 +32,43 @@ class Screen:
     reload_interval = RELOAD_INTERVAL
 
     screen_image: Image.Image = Image.open(SCREENSHOT_IMAGES)
+    top_padding = 80
 
     device = Device()
+
+    @dataclass
+    class Pos:
+        x: float
+        y: float
+        screen_size: Tuple[float, float] = (1080, 2340)  # A50s
+        top_padding: int = 80  # A50s
+
+        def to_tuple(self):
+            return (self.x, self.y)
+
+        def to_percented(self):
+            return (
+                self.x / self.screen_size[0],
+                (self.y - self.top_padding) / self.screen_size[1],
+            )
+
+        def __repr__(self):
+            return f"Pos({self.x}, {self.y})"
+
+    class PosFactory:
+        @staticmethod
+        def pos_from_percented(x: float, y: float):
+            p = Screen.Pos(0, 0)
+            width, height = Screen.screen_image.size
+            p.x, p.y = int(x * width), int(y * height + Screen.top_padding)
+            return p
 
     @dataclass
     class Area:
         top_left: Tuple[float, float]
         bottom_right: Tuple[float, float]
+        screen_size: Tuple[float, float] = (1080, 2340)  # A50s
+        top_padding: int = 80  # A50s
 
         def to_tuple(self):
             return (
@@ -48,7 +78,31 @@ class Screen:
                 self.bottom_right[1],
             )
 
+        def to_percented(self):
+            return (
+                self.top_left[0] / self.screen_size[0],
+                (self.top_left[1] - self.top_padding) / self.screen_size[1],
+                self.bottom_right[0] / self.screen_size[0],
+                (self.bottom_right[1] - self.top_padding) / self.screen_size[1],
+            )
+
+        def __repr__(self):
+            return f"area({self.top_left[0]}, {self.top_left[1]}, {self.bottom_right[0]}, {self.bottom_right[1]})"
+
     class AreaFactory:
+        @staticmethod
+        def area_from_percented_v2(
+            x: float,
+            y: float,
+            u: float,
+            v: float,
+        ):
+            a = Screen.Area((0, 0), (0, 0))
+            width, height = Screen.screen_image.size
+            a.top_left = (int(x * width), int(y * height + Screen.top_padding))
+            a.bottom_right = (int(u * width), int(v * height + Screen.top_padding))
+            return a
+
         @staticmethod
         def area_from_percented(
             x: Tuple[float, float],
@@ -89,11 +143,14 @@ class Screen:
         return screen_data
 
     @staticmethod
-    def get_text(area: None | Area = None, return_image=False):
+    def get_text(area: None | Area = None, return_image=False, percented=False):
         if not Screen.screen_data():
             return
         image = Screen.screen_image
         if area:
+            if percented:
+                print(area)
+                area = Screen.AreaFactory().area_from_percented_v2(*area.to_percented())
             image = image.crop(area.to_tuple())
         if DEBUG:
             image.save(f"{GET_TEXT_SAVE_PATH}/croped-{time.time()}.png")
@@ -128,11 +185,14 @@ class Screen:
         return result
 
     @staticmethod
-    def tap(position: Tuple[float, float], force_reload=False):
+    def tap(pos: Pos, force_reload=False, percented=False):
         if not Screen.screen_image:
             return
-        x, y = position
-        Screen.device.inputTap(x, y)
+        x, y = pos.x, pos.y
+        if percented:
+            p = Screen.PosFactory.pos_from_percented(*Screen.Pos(x, y).to_percented())
+            x, y = p.x * 100, p.y * 100
+        Screen.device.inputTap(x, y, percented)
         if force_reload:
             Screen.update(force_reload)
 
