@@ -6,7 +6,7 @@ import logging
 from typing import Tuple
 from datetime import timedelta
 
-from PIL import Image
+from PIL import Image, ImageEnhance, ImageFilter
 from pytesseract import Output, image_to_data
 
 from adb_auto.adb.device import Device
@@ -89,7 +89,7 @@ class Screen:
         return screen_data
 
     @staticmethod
-    def get_text(area: None | Area = None, return_image=False):
+    def get_text(area: None | Area = None, return_image=False, advance_processing=True, binary_thresholding=False):
         if not Screen.screen_data():
             return
         image = Screen.screen_image
@@ -97,6 +97,23 @@ class Screen:
             image = image.crop(area.to_tuple())
         if DEBUG:
             image.save(f"{GET_TEXT_SAVE_PATH}/croped-{time.time()}.png")
+        if advance_processing:
+            # Convert to grayscale
+            gray = image.convert("L")
+
+            # Increase contrast
+            enhancer = ImageEnhance.Contrast(gray)
+            enhanced = enhancer.enhance(2.0)
+
+            # Optional: Sharpen or filter noise
+            image = enhanced.filter(ImageFilter.SHARPEN)
+            if DEBUG:
+                image.save(f"{GET_TEXT_SAVE_PATH}/croped-{time.time()}-after-processed.png")
+
+            # apply binary thresholding
+            threshold = 128
+            image = image.point(lambda x: 0 if x < threshold else 255, '1')
+
         data = image_to_data(image, output_type=Output.DICT)
 
         # Create a result with bounding box Area and text contain map

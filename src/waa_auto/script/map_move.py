@@ -18,6 +18,7 @@ class MapMove:
     REDIS_KEY_SKNOW_MAP_EDGE = "waa_auto:know_map_edge"
     REDIS_KEY_SKNOW_MAP = "waa_auto:know_map"
     know_map = set()
+    know_edges = set()
 
     TOTAL_RETRY = 3
 
@@ -31,6 +32,8 @@ class MapMove:
         "mid": [1950, 2025],
         "bottom": [2050, 2125],
     }
+
+    MapNameFallbackArea = Screen.Area((8, 1851), (313, 1949))
 
     class Entries(Enum):
         LEFT_TOP = "left_top"
@@ -96,6 +99,35 @@ class MapMove:
                     name = MapMove.text_only(
                         Screen.get_text(Screen.Area(top_left, bottom_right))
                     )
+                    if x == "mid" and y == "mid" and len(name) < 3:
+                        print(
+                            "[WARN] Current map can't be processed, using advance pre-processing"
+                        )
+                        if len(name) < 3:
+                            print("[WARN] Can't get current map name, use fallback")
+                            name = MapMove.text_only(
+                                Screen.get_text(MapMove.MapNameFallbackArea)
+                            )
+                        if len(name) < 3:
+                            print("[WARN] Can't get current map name, use binary_thresholding")
+                            name = MapMove.text_only(
+                                Screen.get_text(
+                                    Screen.Area(top_left, bottom_right),
+                                    binary_thresholding=True,
+                                )
+                            )
+                        if len(name) < 3:
+                            print("[WARN] Can't get current map name, use fallback with binary_thresholding")
+                            name = MapMove.text_only(
+                                Screen.get_text(
+                                    MapMove.MapNameFallbackArea,
+                                    binary_thresholding=True,
+                                )
+                            )
+                        if len(name) < 3:
+                            print("[WARN] Can't get current map name, use placeholder")
+                            name = "Placeholder"
+
                     if len(name) > 3:
                         res["_".join([x, y])] = name
 
@@ -105,9 +137,6 @@ class MapMove:
             curr = res[MapMove.Entries.CURR.value]
             if curr not in MapMove.know_map:
                 print(f"[WARN] Unknow placed, found {curr}")
-                if DEBUG:
-                    r.sadd(MapMove.REDIS_KEY_SKNOW_MAP, curr)
-                    MapMove.know_map.add(curr)
             break
 
         return res
@@ -130,56 +159,39 @@ class MapMove:
         area = MapMove.get_area(next)
         pos = MapMove.random_in_between(area)
         print(f"[INFO] move next {next}, tap pos {pos} (in between {area})")
-        Screen.tap(pos)
+        Screen.tap(pos, force_reload=True)
         MapMove.update()
+
+    @staticmethod
+    def reverse():
+        return {v: k for k, v in MapMove.full_map.items()}
+
+    @staticmethod
+    def add_map(name):
+        r.sadd(MapMove.REDIS_KEY_SKNOW_MAP, name)
+        MapMove.know_map.add(name)
+
+    @staticmethod
+    def add_edges(curr, dest, direction):
+        edge_str = f"{curr}|||{dest}|||{direction}"
+        r.sadd(MapMove.REDIS_KEY_SKNOW_MAP_EDGE, edge_str)
+        MapMove.know_edges.add(edge_str)
 
 
 def main():
-    import json
-
+    MapMove.know_edges = r.smembers(MapMove.REDIS_KEY_SKNOW_MAP_EDGE)
     MapMove.know_map = r.smembers(MapMove.REDIS_KEY_SKNOW_MAP)
-    MapMove.know_map = set([i.decode("ascii") for i in MapMove.know_map])
+    MapMove.know_map = set([i.decode("utf-8") for i in MapMove.know_map])
+    MapMove.know_edges = set([i.decode("utf-8") for i in MapMove.know_edges])
+
+    Screen.update(True)
     MapMove.update()
-
-    know_edges = r.smembers(MapMove.REDIS_KEY_SKNOW_MAP_EDGE)
-    know_edges = set([i.decode("ascii") for i in know_edges])
-
-    nexts = set([v for k, v in MapMove.full_map.items()]) ^ set([MapMove.pos])
-    edges = set([f"{MapMove.pos}|||{n}" for n in nexts])
-    remain = edges ^ (edges & know_edges)
-    print(
-        f"[INFO] curr map = {MapMove.pos}, known_map = {know_edges}, remain = {remain}"
-    )
-    while len(remain) > 0:
-        print(f"[INFO] found unknow map at {remain}")
-        reverse = {v: k for k, v in MapMove.full_map.items()}
-        flag = False
-        for edge in remain:
-            n = edge.split("|||")[1]
-            k = reverse[n]
-            print(f"[INFO] Try to follow {edge} go to {n} ({k})")
-            curr = MapMove.pos
-            MapMove.move(k)
-            if MapMove.pos == curr:
-                print(f"[WARN] Found invalid map {n} ({k})")
-                r.srem(MapMove.REDIS_KEY_SKNOW_MAP, n)
-                MapMove.know_map.remove(n)
-            else:
-                r.sadd(MapMove.REDIS_KEY_SKNOW_MAP, f"{n}")
-                MapMove.know_map.add(n)
-                r.sadd(MapMove.REDIS_KEY_SKNOW_MAP_EDGE, f"{curr}|||{n}")
-                r.sadd(MapMove.REDIS_KEY_SKNOW_MAP_EDGE, f"{curr}|||{MapMove.pos}")
-                know_edges.add(f"{curr}|||{n}")
-                know_edges.add(f"{curr}|||{MapMove.pos}")
-                flag = True
-                break
-        if not flag:
-            print("[ERROR] Can't seem to find any path")
-            break
-
-        nexts = set([v for k, v in MapMove.full_map.items()]) ^ set([MapMove.pos])
-        edges = set([f"{MapMove.pos}|||{n}" for n in nexts])
-        remain = edges ^ (edges & know_edges)
+    MapMove.add_map(MapMove.pos)
+    for direction, name in MapMove.full_map.items():
+        if name == MapMove.pos:
+            continue
+        MapMove.add_edges(MapMove.pos, name, direction)
+        MapMove.add_map(name)
 
 
 if __name__ == "__main__":
