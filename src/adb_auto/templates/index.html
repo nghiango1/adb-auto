@@ -16,7 +16,20 @@
         display: block;
       }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script>
+      var setting = {};
+
+      function sleep(ms) {
+          return new Promise(resolve => setTimeout(resolve, ms));
+      }
+
+      function setSetting(key, value) {
+        setting[key] = value;
+        const s = document.getElementById("setting");
+        s.innerText=JSON.stringify(setting,null,2);
+      }
+
       function updateImage() {
         fetch("{{get_current_screen_api_path}}")
           .then((response) => response.json())
@@ -27,7 +40,16 @@
           .catch((err) => console.error("Error loading image:", err));
       }
 
+      function toggleClickUpdateImage() {
+        setSetting('click-update', !!!setting['click-update']);
+      }
+
       function handleImageClick(event) {
+        if (!!setting['process-click']) {
+          console.log("Already in process of click, skip");
+          return;
+        }
+        setSetting("process-click", true);
         const img = event.target;
         const rect = img.getBoundingClientRect();
         const scaleX = img.naturalWidth / img.width;
@@ -35,15 +57,26 @@
 
         const x = Math.round((event.clientX - rect.left) * scaleX);
         const y = Math.round((event.clientY - rect.top) * scaleY);
+        const forceReload = !!setting['click-update'];
 
-        fetch(`/api/v1/screen/tap?x=${x}&y=${y}`, {
+        fetch(`/api/v1/screen/tap?x=${x}&y=${y}&force_reload=${forceReload}`, {
           method: "GET",
-        });
+        }).then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json(); // parse JSON from the response
+          })
+          .then(data => {
+            if (!!setting['click-update']) {
+              updateImage();
+            }
+            setSetting("process-click", false);
+          });
       }
 
       window.onload = function () {
-        updateImage();
-        setInterval(updateImage, {{reload_interval}} * 1000); // 1 s
+        // setInterval(updateImage, {{reload_interval}} * 1000); // 1 s
 
         const img = document.getElementById("dynamic-image");
         img.addEventListener("click", handleImageClick);
@@ -51,14 +84,21 @@
     </script>
   </head>
   <body>
-    <div>
-      <img
-        id="dynamic-image"
-        src="{{ image_data }}"
-        class="fullscreen"
-        alt="Base64 Flask Image"
-        width="900"
-      />
-    <div>
+    <div class="flex flex-1">
+      <div>
+        <img
+          id="dynamic-image"
+          src="{{ image_data }}"
+          class="fullscreen"
+          alt="Base64 Flask Image"
+          width="900"
+        />
+      </div>
+      <div class="block">
+        <button id="update-image" class="bg-grey-600 py-2 px-4 rounded shadow-md" onclick="updateImage()"> Update screen </button>
+        <button class="bg-grey-600 py-2 px-4 rounded shadow-md" onclick="toggleClickUpdateImage()"> Click Update Toggle </button>
+        <pre id="setting">{}</pre>
+      <div>
+    </div>
   </body>
 </html>

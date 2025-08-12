@@ -93,7 +93,9 @@ def current_image():
 def tap():
     x = request.args.get("x", type=float, default=Screen.screen_image.width)
     y = request.args.get("y", type=float, default=Screen.screen_image.height)
-    Screen.tap((x, y))
+    force_reload = request.args.get("force_reload", type=bool, default=False)
+    
+    Screen.tap((x, y), force_reload = force_reload)
     return jsonify({"res": "success"})
 
 

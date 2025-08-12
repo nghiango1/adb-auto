@@ -14,6 +14,11 @@ parameters:
     description: The y coordinate of the area to get text from
     type: number
     required: true
+  - in: query
+    name: force_reload
+    description: Screen will need to be reload before return success
+    type: boolean
+    required: true
 responses:
   200:
     description: Current device's screen screenshot value
